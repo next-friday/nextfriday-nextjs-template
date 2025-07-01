@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "sonarsource.sonarlint-vscode",
+    "github.vscode-codeql",
+    "usernamehw.errorlens",
+    "esbenp.prettier-vscode",
+    "github.vscode-pull-request-github",
+    "ms-vscode.vscode-typescript-next",
+    "bradlc.vscode-tailwindcss",
+    "gruntfuggly.todo-tree",
+    "ms-vsliveshare.vsliveshare",
+    "ms-vscode.vscode-js-profile-flame",
+    "unifiedjs.vscode-mdx",
+    "orta.vscode-jest"
+  ]
+}

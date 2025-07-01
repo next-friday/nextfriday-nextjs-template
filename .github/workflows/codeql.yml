@@ -1,0 +1,65 @@
+name: CodeQL Analysis
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**/dist/**"
+      - "**/coverage/**"
+      - "**/node_modules/**"
+      - "**/.next/**"
+
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "**/dist/**"
+      - "**/coverage/**"
+      - "**/node_modules/**"
+      - "**/.next/**"
+
+  schedule:
+    - cron: 31 7 * * 3
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+      checks: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: Javascript
+            build-mode: none
+          - language: TypeScript
+            build-mode: none
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/common-actions/setup
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}
