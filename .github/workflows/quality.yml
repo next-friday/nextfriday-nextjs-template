@@ -1,0 +1,70 @@
+name: Quality Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-project:
+    name: Build Project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/common-actions/setup
+
+      - name: Run Project Build
+        run: pnpm build
+
+  lint-code:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    needs:
+      - build-project
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/common-actions/setup
+
+      - name: Run ESLint Checks
+        run: pnpm lint
+
+  check-formatting:
+    name: Check Code Formatting
+    runs-on: ubuntu-latest
+    needs:
+      - lint-code
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/common-actions/setup
+
+      - name: Run Prettier Check
+        run: pnpm prettier:check
+
+  check-package-json:
+    name: Check Package.json Sorting
+    runs-on: ubuntu-latest
+    needs:
+      - lint-code
+      - check-formatting
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/common-actions/setup
+
+      - name: Run Sort Package Json Check
+        run: pnpm sort-package-json:check
