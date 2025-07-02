@@ -1,115 +1,128 @@
+import eslintConfigAirbnbExtended from "eslint-config-airbnb-extended";
+import eslintConfigPrettier from "eslint-config-prettier";
+import eslintJs from "@eslint/js";
 import eslintPluginImportX from "eslint-plugin-import-x";
-import eslintPluginNext from "@next/eslint-plugin-next";
 import eslintPluginPrettier from "eslint-plugin-prettier";
-import eslintPluginReact from "eslint-plugin-react";
-import eslintPluginReactHooks from "eslint-plugin-react-hooks";
 import eslintPluginSonarjs from "eslint-plugin-sonarjs";
 import typescriptEslint from "typescript-eslint";
-import { configs as eslintConfigAirbnbExtended } from "eslint-config-airbnb-extended/legacy";
-import { rules as eslintConfigPrettier } from "eslint-config-prettier";
 
-const allJsTsFiles = "**/*.{js,jsx,ts,tsx,mjs}";
-
-const plugins = {
-  import: eslintPluginImportX,
-  "import-x": eslintPluginImportX,
-  react: eslintPluginReact,
-  "react-hooks": eslintPluginReactHooks,
-  "@next/next": eslintPluginNext,
-  sonarjs: eslintPluginSonarjs,
-  prettier: eslintPluginPrettier,
-};
-
-const importOrderConfig = {
-  "import/order": [
-    "error",
-    {
-      groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
-      pathGroups: [
-        {
-          pattern: "src/**",
-          group: "internal",
-          position: "before",
-        },
-        {
-          pattern: "~/**",
-          group: "external",
-          position: "after",
-        },
-      ],
-      "newlines-between": "always",
-    },
-  ],
-};
-
-const reactRules = {
-  ...eslintPluginNext.configs.recommended.rules,
-  ...eslintPluginNext.configs["core-web-vitals"].rules,
-};
-
-const jsxTsxRules = {
-  "func-style": ["error", "expression", { allowArrowFunctions: true }],
-  "prefer-arrow-callback": ["error", { allowNamedFunctions: false }],
-};
-
-const codeQualityRules = {
-  ...eslintPluginSonarjs.configs.recommended.rules,
-};
-
-const prettierRules = {
-  ...eslintPluginPrettier.configs.recommended.rules,
-  "prettier/prettier": "error",
-  ...eslintConfigPrettier,
-};
-
-const settings = {
-  react: {
-    version: "detect",
-  },
-  "import/resolver": {
-    typescript: true,
-    node: true,
-  },
-};
-
-export default [
+const createJavaScriptConfig = () => [
   {
-    ignores: [".next/**", "out/**", "build/**", "dist/**", "node_modules/**", ".git/**"],
+    name: "js/config",
+    ...eslintJs.configs.recommended,
   },
-  ...typescriptEslint.configs.recommended,
-  ...eslintConfigAirbnbExtended.base.typescript,
-  ...eslintConfigAirbnbExtended.react.typescript,
+  eslintConfigAirbnbExtended.plugins.stylistic,
+  eslintConfigAirbnbExtended.plugins.importX,
+  ...eslintConfigAirbnbExtended.configs.base.recommended,
+];
+
+const createTypeScriptConfig = () => [
   {
-    files: [allJsTsFiles],
+    name: "typescript-eslint/plugin",
     plugins: {
-      import: plugins.import,
-      "import-x": plugins["import-x"],
-      react: plugins.react,
-      "react-hooks": plugins["react-hooks"],
-      "@next/next": plugins["@next/next"],
+      "@typescript-eslint": typescriptEslint.plugin,
+    },
+  },
+  ...eslintConfigAirbnbExtended.configs.base.typescript,
+  ...eslintConfigAirbnbExtended.configs.react.typescript,
+  ...typescriptEslint.configs.recommended,
+];
+
+const createImportConfig = () => [
+  {
+    name: "import-x/order/rules",
+    plugins: {
+      import: eslintPluginImportX,
     },
     rules: {
-      ...reactRules,
-      ...importOrderConfig,
+      "import-x/order": [
+        "warn",
+        {
+          groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
+          pathGroups: [
+            {
+              pattern: "src/**",
+              group: "internal",
+              position: "before",
+            },
+            {
+              pattern: "~/**",
+              group: "external",
+              position: "after",
+            },
+          ],
+          "newlines-between": "always",
+        },
+      ],
     },
-    settings,
   },
+];
+
+const createReactConfig = () => [
+  eslintConfigAirbnbExtended.plugins.react,
+  eslintConfigAirbnbExtended.plugins.reactHooks,
+  eslintConfigAirbnbExtended.plugins.reactA11y,
+  ...eslintConfigAirbnbExtended.configs.react.recommended,
   {
-    files: ["**/*.{jsx,tsx}"],
-    rules: jsxTsxRules,
+    name: "react/custom-rules",
+    rules: {
+      "react/react-in-jsx-scope": "off",
+      "react/jsx-filename-extension": [
+        "error",
+        {
+          extensions: [".tsx"],
+        },
+      ],
+      "react/function-component-definition": [
+        "error",
+        {
+          namedComponents: "arrow-function",
+          unnamedComponents: "arrow-function",
+        },
+      ],
+      "jsx-a11y/anchor-is-valid": "off",
+    },
+    settings: {
+      react: {
+        version: "detect",
+      },
+    },
   },
+];
+
+const createSonarJSConfig = () => [
   {
-    files: [allJsTsFiles],
+    name: "sonarjs/config",
     plugins: {
-      sonarjs: plugins.sonarjs,
+      sonarjs: eslintPluginSonarjs,
     },
-    rules: codeQualityRules,
+    rules: {
+      ...eslintPluginSonarjs.configs.recommended.rules,
+    },
+  },
+];
+
+const createPrettierConfig = () => [
+  {
+    name: "prettier/plugin/config",
+    plugins: {
+      prettier: eslintPluginPrettier,
+    },
   },
   {
-    files: [allJsTsFiles],
-    plugins: {
-      prettier: plugins.prettier,
+    name: "prettier/rules",
+    rules: {
+      ...eslintConfigPrettier.rules,
+      "prettier/prettier": "error",
     },
-    rules: prettierRules,
   },
+];
+
+export default [
+  ...createJavaScriptConfig(),
+  ...createTypeScriptConfig(),
+  ...createImportConfig(),
+  ...createReactConfig(),
+  ...createSonarJSConfig(),
+  ...createPrettierConfig(),
 ];
